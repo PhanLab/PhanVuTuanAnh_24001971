@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "Bai01_shopping_cart",
+            "username": "24001971",
+            "database": "Bai01_shopping_cart",
+            "askForPassword": true
+        }
+    ]
+}
