@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quản lý sản phẩm bằng PHP, MySQL và Vue.js">
+    <title>Quản lý sản phẩm | TH8 PHP & Vue.js</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" defer></script>
+    <script src="assets/app.js" defer></script>
+</head>
+<body>
+    <main id="app" class="page-shell">
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">THỰC HÀNH 8 · PHP + VUE.JS</p>
+                <h1>Quản lý sản phẩm</h1>
+                <p class="subtitle">Theo dõi danh sách, đơn giá và số lượng tồn kho.</p>
+            </div>
+            <div class="header-badge">{{ products.length }} sản phẩm</div>
+        </header>
+
+        <div v-if="successMessage" class="alert alert-success" role="status">
+            {{ successMessage }}
+            <button class="alert-close" type="button" aria-label="Đóng thông báo" @click="successMessage = ''">×</button>
+        </div>
+        <div v-if="errorMessage" class="alert alert-error" role="alert">
+            {{ errorMessage }}
+            <button class="alert-close" type="button" aria-label="Đóng thông báo" @click="errorMessage = ''">×</button>
+        </div>
+
+        <section class="panel form-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="section-kicker">THÔNG TIN SẢN PHẨM</p>
+                    <h2>{{ editingId === null ? 'Thêm sản phẩm mới' : 'Cập nhật sản phẩm' }}</h2>
+                </div>
+                <span class="mode-pill" :class="{ 'mode-edit': editingId !== null }">
+                    {{ editingId === null ? 'Chế độ thêm' : 'Chế độ sửa · #' + editingId }}
+                </span>
+            </div>
+
+            <form class="product-form" @submit.prevent="saveProduct">
+                <label class="field field-name">
+                    <span>Tên sản phẩm</span>
+                    <input
+                        v-model.trim="form.name"
+                        type="text"
+                        maxlength="100"
+                        placeholder="Ví dụ: Bút bi Thiên Long"
+                        required
+                    >
+                </label>
+
+                <label class="field">
+                    <span>Đơn giá (đồng)</span>
+                    <input
+                        v-model.number="form.price"
+                        type="number"
+                        min="1"
+                        max="2147483647"
+                        step="1"
+                        placeholder="5000"
+                        required
+                    >
+                </label>
+
+                <label class="field">
+                    <span>Số lượng tồn</span>
+                    <input
+                        v-model.number="form.stock"
+                        type="number"
+                        min="0"
+                        max="2147483647"
+                        step="1"
+                        placeholder="20"
+                        required
+                    >
+                </label>
+
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit" :disabled="saving">
+                        {{ saving ? 'Đang lưu...' : (editingId === null ? '＋ Lưu sản phẩm' : 'Lưu thay đổi') }}
+                    </button>
+                    <button v-if="editingId !== null" class="button button-ghost" type="button" @click="resetForm" :disabled="saving">
+                        Hủy sửa
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel table-panel">
+            <div class="panel-heading table-heading">
+                <div>
+                    <p class="section-kicker">KHO SẢN PHẨM</p>
+                    <h2>Danh sách sản phẩm</h2>
+                </div>
+                <button class="button button-ghost refresh-button" type="button" @click="fetchProducts" :disabled="loading">
+                    ↻ Làm mới
+                </button>
+            </div>
+
+            <div v-if="loading" class="empty-state">Đang tải danh sách sản phẩm...</div>
+            <div v-else-if="products.length === 0" class="empty-state">
+                Chưa có sản phẩm nào. Hãy thêm sản phẩm đầu tiên.
+            </div>
+            <div v-else class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-id">Mã</th>
+                            <th>Tên sản phẩm</th>
+                            <th class="text-right">Đơn giá</th>
+                            <th class="text-center">Số lượng tồn</th>
+                            <th class="text-center col-actions">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="product in products" :key="product.id">
+                            <td class="id-cell">#{{ product.id }}</td>
+                            <td class="product-name">{{ product.name }}</td>
+                            <td class="price-cell">{{ formatPrice(product.price) }}</td>
+                            <td class="text-center">
+                                <span class="stock-badge" :class="product.stock === 0 ? 'stock-empty' : 'stock-available'">
+                                    {{ product.stock }}
+                                </span>
+                            </td>
+                            <td class="text-center action-cell">
+                                <button class="button button-small button-edit" type="button" @click="editProduct(product)">Sửa</button>
+                                <button class="button button-small button-delete" type="button" @click="deleteProduct(product)">Xóa</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-footer" v-if="!loading">
+                <span>Hiển thị {{ products.length }} sản phẩm</span>
+                <span>Dữ liệu được lưu trong MySQL</span>
+            </div>
+        </section>
+
+        <footer class="page-footer">Bài thực hành 8 · PHP PDO · MySQL · Vue 3</footer>
+    </main>
+</body>
+</html>
